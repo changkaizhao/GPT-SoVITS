@@ -805,7 +805,7 @@ def open1a(inp_text, inp_wav_dir, exp_name, gpu_numbers, bert_pretrained_dir):
                     "i_part": str(i_part),
                     "all_parts": str(all_parts),
                     "_CUDA_VISIBLE_DEVICES": fix_gpu_number(gpu_names[i_part]),
-                    "is_half": str(is_half),
+                    "is_half": str( ),
                 }
             )
             os.environ.update(config)

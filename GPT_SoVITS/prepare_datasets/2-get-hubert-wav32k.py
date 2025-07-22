@@ -18,6 +18,23 @@ import torch
 
 is_half = eval(os.environ.get("is_half", "True")) and torch.cuda.is_available()
 
+# Debug: print loaded environment variables
+env_vars = {
+    "inp_text": inp_text,
+    "inp_wav_dir": inp_wav_dir,
+    "exp_name": exp_name,
+    "i_part": i_part,
+    "all_parts": all_parts,
+    "_CUDA_VISIBLE_DEVICES": os.environ.get("_CUDA_VISIBLE_DEVICES"),
+    "CUDA_VISIBLE_DEVICES": os.environ.get("CUDA_VISIBLE_DEVICES"),
+    "cnhubert_base_dir": cnhubert.cnhubert_base_path,
+    "opt_dir": opt_dir,
+    "is_half": is_half,
+}
+for name, value in env_vars.items():
+    print(f"{name} = {value}")
+
+
 import traceback
 import numpy as np
 from scipy.io import wavfile
@@ -84,15 +101,25 @@ def name2go(wav_name, wav_path):
     if tmp_max > 2.2:
         print("%s-filtered,%s" % (wav_name, tmp_max))
         return
-    tmp_audio32 = (tmp_audio / tmp_max * (maxx * alpha * 32768)) + ((1 - alpha) * 32768) * tmp_audio
-    tmp_audio32b = (tmp_audio / tmp_max * (maxx * alpha * 1145.14)) + ((1 - alpha) * 1145.14) * tmp_audio
-    tmp_audio = librosa.resample(tmp_audio32b, orig_sr=32000, target_sr=16000)  # 不是重采样问题
+    tmp_audio32 = (tmp_audio / tmp_max * (maxx * alpha * 32768)) + (
+        (1 - alpha) * 32768
+    ) * tmp_audio
+    tmp_audio32b = (tmp_audio / tmp_max * (maxx * alpha * 1145.14)) + (
+        (1 - alpha) * 1145.14
+    ) * tmp_audio
+    tmp_audio = librosa.resample(
+        tmp_audio32b, orig_sr=32000, target_sr=16000
+    )  # 不是重采样问题
     tensor_wav16 = torch.from_numpy(tmp_audio)
     if is_half == True:
         tensor_wav16 = tensor_wav16.half().to(device)
     else:
         tensor_wav16 = tensor_wav16.to(device)
-    ssl = model.model(tensor_wav16.unsqueeze(0))["last_hidden_state"].transpose(1, 2).cpu()  # torch.Size([1, 768, 215])
+    ssl = (
+        model.model(tensor_wav16.unsqueeze(0))["last_hidden_state"]
+        .transpose(1, 2)
+        .cpu()
+    )  # torch.Size([1, 768, 215])
     if np.isnan(ssl.detach().numpy()).sum() != 0:
         nan_fails.append((wav_name, wav_path))
         print("nan filtered:%s" % wav_name)

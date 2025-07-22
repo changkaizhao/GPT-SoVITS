@@ -15,6 +15,39 @@ import torch
 
 is_half = eval(os.environ.get("is_half", "True")) and torch.cuda.is_available()
 version = os.environ.get("version", None)
+
+# print out all relevant environment variables and computed flags
+print("===== Environment Settings =====")
+for var in [
+    "inp_text",
+    "inp_wav_dir",
+    "exp_name",
+    "i_part",
+    "all_parts",
+    "_CUDA_VISIBLE_DEVICES",
+    "CUDA_VISIBLE_DEVICES",
+    "opt_dir",
+    "bert_pretrained_dir",
+    "version",
+]:
+    # first try locals(), then fall back to os.environ
+    val = locals().get(var, os.environ.get(var))
+    print(f"{var} = {val}")
+print("is_half =", is_half)
+print("================================")
+
+
+# inp_text = /home/roby/proj/GPT-SoVITS/output/asr_opt/slicer_opt.list
+# inp_wav_dir = /home/roby/proj/GPT-SoVITS/output/slicer_opt
+# exp_name = xxxasdf
+# i_part = 1
+# all_parts = 2
+# opt_dir = logs/xxxasdf
+# bert_pretrained_dir = GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large
+# CUDA_VISIBLE_DEVICES = 0
+# is_half = False
+# version = v2Pro
+
 import traceback
 import os.path
 from text.cleaner import clean_text
@@ -89,7 +122,9 @@ if os.path.exists(txt_path) == False:
                 name = clean_path(name)
                 name = os.path.basename(name)
                 print(name)
-                phones, word2ph, norm_text = clean_text(text.replace("%", "-").replace("￥", ","), lan, version)
+                phones, word2ph, norm_text = clean_text(
+                    text.replace("%", "-").replace("￥", ","), lan, version
+                )
                 path_bert = "%s/%s.pt" % (bert_dir, name)
                 if os.path.exists(path_bert) == False and lan == "zh":
                     bert_feature = get_bert_feature(norm_text, word2ph)
@@ -129,9 +164,13 @@ if os.path.exists(txt_path) == False:
             wav_name, spk_name, language, text = line.split("|")
             # todo.append([name,text,"zh"])
             if language in language_v1_to_language_v2.keys():
-                todo.append([wav_name, text, language_v1_to_language_v2.get(language, language)])
+                todo.append(
+                    [wav_name, text, language_v1_to_language_v2.get(language, language)]
+                )
             else:
-                print(f"\033[33m[Waring] The {language = } of {wav_name} is not supported for training.\033[0m")
+                print(
+                    f"\033[33m[Waring] The {language = } of {wav_name} is not supported for training.\033[0m"
+                )
         except:
             print(line, traceback.format_exc())
 

@@ -10,6 +10,16 @@ opt_dir = os.environ.get("opt_dir")
 pretrained_s2G = os.environ.get("pretrained_s2G")
 s2config_path = os.environ.get("s2config_path")
 
+# Print all relevant environment variables
+print(f"inp_text       = {inp_text}")
+print(f"exp_name       = {exp_name}")
+print(f"i_part         = {i_part}")
+print(f"all_parts      = {all_parts}")
+print(f"opt_dir        = {opt_dir}")
+print(f"pretrained_s2G = {pretrained_s2G}")
+print(f"s2config_path  = {s2config_path}")
+
+
 if os.path.exists(pretrained_s2G):
     ...
 else:
@@ -29,6 +39,7 @@ else:
 import torch
 
 is_half = eval(os.environ.get("is_half", "True")) and torch.cuda.is_available()
+
 import traceback
 import sys
 
@@ -82,7 +93,10 @@ if os.path.exists(semantic_path) == False:
     # utils.load_checkpoint(pretrained_s2G, vq_model, None, True)
     print(
         vq_model.load_state_dict(
-            torch.load(pretrained_s2G, map_location="cpu", weights_only=False)["weight"], strict=False
+            torch.load(pretrained_s2G, map_location="cpu", weights_only=False)[
+                "weight"
+            ],
+            strict=False,
         )
     )
 
